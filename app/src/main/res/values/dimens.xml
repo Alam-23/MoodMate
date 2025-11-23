@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Bottom navigation height -->
+    <dimen name="bottom_navigation_height">56dp</dimen>
+    
+    <!-- Input field positioning -->
+    <dimen name="input_elevation">8dp</dimen>
+    
+    <!-- Chat input margin -->
+    <dimen name="chat_input_margin_bottom">8dp</dimen>
+    <dimen name="chat_input_padding">12dp</dimen>
+    
+    <!-- Standard margins and paddings -->
+    <dimen name="margin_small">8dp</dimen>
+    <dimen name="margin_medium">16dp</dimen>
+    <dimen name="margin_large">24dp</dimen>
+    
+    <!-- Send button size -->
+    <dimen name="send_button_size">48dp</dimen>
+    
+    <!-- App logo size -->
+    <dimen name="logo_size">40dp</dimen>
+</resources>

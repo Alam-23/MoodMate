@@ -1,0 +1,25 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.MoodMate" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your dark theme here. -->
+        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+    </style>
+    
+    <!-- Splash Screen Theme for Night Mode -->
+    <style name="SplashTheme" parent="Theme.MoodMate">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowBackground">@drawable/splash_background</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+    
+    <!-- Custom TextInputLayout Style for Night Mode -->
+    <style name="CustomTextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxStrokeColor">#7C4DFF</item>
+        <item name="hintTextColor">#B0B0B0</item>
+        <item name="android:textColorHint">#B0B0B0</item>
+        <item name="boxBackgroundColor">@android:color/transparent</item>
+        <item name="android:textColor">#FFFFFF</item>
+    </style>
+</resources>

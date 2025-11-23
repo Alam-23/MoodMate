@@ -1,0 +1,42 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.MoodMate" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your light theme here. -->
+        <item name="colorPrimary">#7C4DFF</item>
+        <item name="colorPrimaryVariant">#5A2E8C</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="android:colorBackground">#2D2D2D</item>
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:statusBarColor">#2D2D2D</item>
+        <item name="android:navigationBarColor">#1F1F1F</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
+
+    <style name="Theme.MoodMate" parent="Base.Theme.MoodMate" />
+    
+    <style name="AlertDialogTheme" parent="Theme.AppCompat.Dialog.Alert">
+        <item name="android:background">#3A3A3A</item>
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:textColorPrimary">#FFFFFF</item>
+        <item name="colorAccent">#7C4DFF</item>
+    </style>
+    
+    <!-- Splash Screen Theme -->
+    <style name="SplashTheme" parent="Theme.MoodMate">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowBackground">@drawable/splash_background</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+    
+    <!-- Custom TextInputLayout Style -->
+    <style name="CustomTextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxStrokeColor">#7C4DFF</item>
+        <item name="hintTextColor">#B0B0B0</item>
+        <item name="android:textColorHint">#B0B0B0</item>
+        <item name="boxBackgroundColor">@android:color/transparent</item>
+        <item name="android:textColor">#FFFFFF</item>
+    </style>
+</resources>
