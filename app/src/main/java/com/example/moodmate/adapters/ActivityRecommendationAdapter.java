@@ -63,21 +63,20 @@ public class ActivityRecommendationAdapter extends RecyclerView.Adapter<Activity
         private TextView iconText;
         private TextView titleText;
         private TextView descriptionText;
-        private TextView categoryText;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             iconText = itemView.findViewById(R.id.recommendation_icon);
             titleText = itemView.findViewById(R.id.recommendation_title);
             descriptionText = itemView.findViewById(R.id.recommendation_description);
-            categoryText = itemView.findViewById(R.id.recommendation_category);
         }
 
         public void bind(ActivityRecommendation recommendation) {
             iconText.setText(recommendation.getIcon());
             titleText.setText(recommendation.getTitle());
+            // Set description as plain text to avoid any formatting issues
             descriptionText.setText(recommendation.getDescription());
-            categoryText.setText(recommendation.getCategory());
+            descriptionText.setAutoLinkMask(0); // Disable auto-linking
         }
     }
 }

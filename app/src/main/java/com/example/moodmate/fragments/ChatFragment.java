@@ -123,10 +123,10 @@ public class ChatFragment extends Fragment {
         
         messageInput.setText("");
         
-        // Send to AI
-        aiService.sendMessage(message, new GeminiAIService.ChatCallback() {
+        // Send to AI with enhanced mood detection
+        aiService.sendMessage(message, new GeminiAIService.AICallback() {
             @Override
-            public void onSuccess(String response) {
+            public void onSuccess(String response, String moodAnalysis) {
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
                         // Add AI response
@@ -138,19 +138,24 @@ public class ChatFragment extends Fragment {
                         // Save AI message to database
                         databaseHelper.insertChatMessage(aiMessage, userId);
                         
-                        // Simple mood analysis from user message
-                        String analyzedMood = aiService.analyzeMood(message);
+                        // Use enhanced mood analysis (from AI response or fallback to local analysis)
+                        String analyzedMood = moodAnalysis;
+                        if (analyzedMood == null || analyzedMood.trim().isEmpty()) {
+                            // Fallback to local analysis if AI didn't provide mood
+                            analyzedMood = aiService.analyzeMood(message);
+                        }
+                        
                         android.util.Log.d("ChatFragment", "Original message: " + message);
-                        android.util.Log.d("ChatFragment", "Analyzed mood: " + analyzedMood);
+                        android.util.Log.d("ChatFragment", "AI Mood Analysis: " + moodAnalysis);
+                        android.util.Log.d("ChatFragment", "Final Analyzed mood: " + analyzedMood);
                         
                         // Special command for testing multiple moods
                         if (message.toLowerCase().contains("test mood data")) {
-                            // Trigger test data creation
                             createTestMoodData();
-                            return; // Don't process normal mood analysis
+                            return; 
                         }
                         
-                        if (analyzedMood != null) {
+                        if (analyzedMood != null && !analyzedMood.trim().isEmpty() && !analyzedMood.equals("Netral")) {
                             MoodEntry moodEntry = new MoodEntry(
                                 analyzedMood,
                                 MoodEntry.getMoodScore(analyzedMood),
@@ -158,12 +163,15 @@ public class ChatFragment extends Fragment {
                                 System.currentTimeMillis()
                             );
                             long result = databaseHelper.insertMoodEntry(moodEntry, userId);
-                            android.util.Log.d("ChatFragment", "Mood saved with ID: " + result);
+                            android.util.Log.d("ChatFragment", "Mood entry saved - ID: " + result + ", Mood: " + analyzedMood);
                             
                             // Notify MainActivity about mood update
                             if (getActivity() instanceof MainActivity) {
                                 ((MainActivity) getActivity()).notifyMoodUpdate();
+                                android.util.Log.d("ChatFragment", "Mood update notification sent to MainActivity");
                             }
+                        } else {
+                            android.util.Log.d("ChatFragment", "Skipping mood entry - mood was null, empty, or Netral: " + analyzedMood);
                         }
                     });
                 }
