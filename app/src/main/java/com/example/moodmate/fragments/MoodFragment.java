@@ -456,7 +456,7 @@ public class MoodFragment extends Fragment {
         MoodEntry latestMood = moodEntries.get(moodEntries.size() - 1);
         String currentMood = latestMood.getMoodType();
         
-        currentMoodText.setText(getMoodEmoji(currentMood) + " " + currentMood + " (Mood Terkini)");
+        currentMoodText.setText(getMoodEmoji(currentMood) + " " + currentMood);
         
         // Generate insight
         String insight = generateMoodInsight(moodEntries);
@@ -472,10 +472,20 @@ public class MoodFragment extends Fragment {
             case "sedih":
                 return "😢";
             case "marah":
+            case "kesal":
                 return "😠";
             case "cemas":
             case "khawatir":
-                return "😰";
+                return "😟";
+            case "excited":
+            case "antusias":
+                return "🎉";
+            case "stress":
+            case "tertekan":
+                return "😫";
+            case "calm":
+            case "tenang":
+                return "🙂";
             case "netral":
             default:
                 return "😐";
@@ -489,11 +499,14 @@ public class MoodFragment extends Fragment {
     
     // Get mood from score for chart display
     private String getEmojiFromScore(float score) {
-        if (score >= 8.0f) return "😊"; // Senang
-        else if (score >= 6.0f) return "😐"; // Netral
-        else if (score >= 4.0f) return "😰"; // Cemas
-        else if (score >= 2.0f) return "😢"; // Sedih
-        else return "😠"; // Marah
+        if (score >= 9.0f) return "🎉"; // Excited (9.0f)
+        else if (score >= 8.0f) return "😊"; // Senang (8.5f)
+        else if (score >= 6.5f) return "🙂"; // Calm (7.0f)
+        else if (score >= 4.5f) return "😐"; // Netral (5.0f)
+        else if (score >= 2.8f) return "😟"; // Cemas (3.0f)
+        else if (score >= 2.2f) return "😫"; // Stress (2.5f)
+        else if (score >= 1.8f) return "😢"; // Sedih (2.0f)
+        else return "😠"; // Marah (1.5f)
     }
     
     private int getMoodColor(String mood) {
@@ -501,17 +514,27 @@ public class MoodFragment extends Fragment {
             case "senang":
             case "bahagia":
             case "gembira":
-                return Color.parseColor("#4CAF50"); // Green
+                return Color.parseColor("#4CAF50"); // Green - Happy
             case "sedih":
-                return Color.parseColor("#F44336"); // Red
+                return Color.parseColor("#2196F3"); // Blue - Sad
             case "marah":
-                return Color.parseColor("#FF5722"); // Red-Orange
+            case "kesal":
+                return Color.parseColor("#F44336"); // Red - Angry
             case "cemas":
             case "khawatir":
-                return Color.parseColor("#FF9800"); // Orange
+                return Color.parseColor("#FF9800"); // Orange - Anxious
+            case "excited":
+            case "antusias":
+                return Color.parseColor("#FF6F00"); // Deep Orange - Excited
+            case "stress":
+            case "tertekan":
+                return Color.parseColor("#9C27B0"); // Purple - Stressed
+            case "calm":
+            case "tenang":
+                return Color.parseColor("#00BCD4"); // Cyan - Calm
             case "netral":
             default:
-                return Color.parseColor("#9E9E9E"); // Gray
+                return Color.parseColor("#9E9E9E"); // Gray - Neutral
         }
     }
     
@@ -543,13 +566,17 @@ public class MoodFragment extends Fragment {
             }
         }
         
-        // Generate insight based on data
+        // Generate insight based on data - fokus ke mood saat ini
+        MoodEntry latestMood = moodEntries.get(moodEntries.size() - 1);
+        String currentMood = latestMood.getMoodType();
+        String moodEmoji = getMoodEmoji(currentMood);
+        
         if (avgScore >= 7.0f) {
-            return "Mood Anda cenderung positif! Mood dominan: " + dominantMood + ". Pertahankan aktivitas yang membuat Anda bahagia.";
+            return "✨ Mood Anda cenderung positif! Saat ini: " + moodEmoji + " " + currentMood + ". Pertahankan aktivitas yang membuat Anda bahagia! 😊";
         } else if (avgScore >= 5.0f) {
-            return "Mood Anda dalam keadaan seimbang. Mood dominan: " + dominantMood + ". Coba aktivitas yang lebih menyenangkan.";
+            return "⚖️ Mood Anda dalam keadaan seimbang. Saat ini: " + moodEmoji + " " + currentMood + ". Coba aktivitas yang lebih menyenangkan! 🌟";
         } else {
-            return "Sepertinya Anda perlu lebih banyak dukungan. Mood dominan: " + dominantMood + ". Jangan ragu untuk terus bercerita dengan AI.";
+            return "💜 Sepertinya Anda perlu lebih banyak dukungan. Saat ini: " + moodEmoji + " " + currentMood + ". Jangan ragu untuk terus bercerita dengan AI! 🤗";
         }
     }
     
@@ -624,13 +651,29 @@ public class MoodFragment extends Fragment {
                 return new ActivityRecommendation("🎵", "Dengar Musik Favorit", "Putar lagu yang membuat hati senang dan tingkatkan mood", "Hiburan");
                 
             case "marah":
+            case "kesal":
                 return new ActivityRecommendation("🧘", "Meditasi 10 Menit", "Tenangkan pikiran dengan teknik pernapasan dalam", "Relaksasi");
                 
             case "cemas":
+            case "khawatir":
                 return new ActivityRecommendation("🫁", "Latihan Pernapasan", "Gunakan teknik 4-7-8 untuk menenangkan diri", "Relaksasi");
                 
             case "senang":
+            case "bahagia":
+            case "gembira":
                 return new ActivityRecommendation("🎨", "Aktivitas Kreatif", "Manfaatkan energi positif untuk berkreasi", "Kreatif");
+                
+            case "excited":
+            case "antusias":
+                return new ActivityRecommendation("🏃", "Olahraga Energik", "Salurkan energi tinggi dengan aktivitas fisik yang menyenangkan", "Fisik");
+                
+            case "stress":
+            case "tertekan":
+                return new ActivityRecommendation("🌿", "Jalan Santai", "Habiskan waktu di alam atau taman untuk mengurangi tekanan", "Relaksasi");
+                
+            case "calm":
+            case "tenang":
+                return new ActivityRecommendation("📚", "Baca Buku Favorit", "Pertahankan ketenangan dengan membaca hal yang menyenangkan", "Edukatif");
                 
             default: // Netral
                 return new ActivityRecommendation("☕", "Me Time Quality", "Nikmati waktu sendiri dengan minuman hangat favorit", "Relaksasi");
