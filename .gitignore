@@ -13,3 +13,8 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Environment variables (NEVER commit these!)
+.env
+.env.*
+*.env

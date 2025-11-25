@@ -18,8 +18,8 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class GeminiAIService {
-    // Hardcoded API Key - ganti dengan API Key Gemini 2.5 Anda
-    private static final String API_KEY = "AIzaSyAUucULfNGbFYPryP02Yvu9OSqhNO_up_Y";
+    // Simple hardcoded API Key
+    private static final String API_KEY = "AIzaSyCTTEvj2QzHx8Gph9-FM128sBOYtrJex94";
     private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + API_KEY;
     
     private OkHttpClient client;
