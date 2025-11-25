@@ -415,6 +415,43 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return user;
     }
     
+    // Update user profile picture
+    public boolean updateUserProfilePicture(String userEmail, String profilePictureBase64) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        
+        ContentValues values = new ContentValues();
+        values.put(USER_PROFILE_PICTURE, profilePictureBase64);
+        
+        String whereClause = USER_EMAIL + " = ?";
+        String[] whereArgs = {userEmail};
+        
+        int rowsAffected = db.update(TABLE_USER, values, whereClause, whereArgs);
+        db.close();
+        
+        android.util.Log.d("DatabaseHelper", "Profile picture updated for user: " + userEmail + ", rows affected: " + rowsAffected);
+        return rowsAffected > 0;
+    }
+    
+    // Get user profile picture
+    public String getUserProfilePicture(String userEmail) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        
+        String[] columns = {USER_PROFILE_PICTURE};
+        String selection = USER_EMAIL + " = ?";
+        String[] selectionArgs = {userEmail};
+        
+        Cursor cursor = db.query(TABLE_USER, columns, selection, selectionArgs, null, null, null);
+        
+        String profilePicture = null;
+        if (cursor.moveToFirst()) {
+            profilePicture = cursor.getString(cursor.getColumnIndexOrThrow(USER_PROFILE_PICTURE));
+        }
+        
+        cursor.close();
+        db.close();
+        return profilePicture;
+    }
+    
     // Force recreate database (for development/testing)
     public void recreateDatabase() {
         SQLiteDatabase db = this.getWritableDatabase();
