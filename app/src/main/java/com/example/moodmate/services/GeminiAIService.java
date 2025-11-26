@@ -142,14 +142,12 @@ public class GeminiAIService {
             return;
         }
         
-        // Enhanced prompt with mood analysis request
+        // Simple prompt without mood analysis instructions
         String prompt = "Anda adalah MoodMate, AI companion untuk kesehatan mental. " +
                "ATURAN KETAT:\\n" +
                "1. HANYA bicara tentang kesehatan mental, perasaan, emosi, dan dukungan psikologis\\n" +
                "2. Berikan respons yang empati, supportif, dan caring\\n" +
-               "3. Analisis mood dari pesan user dan tentukan satu mood utama\\n" +
-               "4. Mood yang valid: Senang, Sedih, Marah, Cemas, Excited, Stress, Calm\\n" +
-               "5. Di akhir respons, tambahkan [MOOD_DETECTED: mood_name] untuk internal analysis\\n\\n" +
+               "3. Respons harus natural dan conversational\\n\\n" +
                "Pesan user: \\\"" + userMessage + "\\\"";
         
         JsonObject requestBody = createRequestBody(prompt);
@@ -244,8 +242,7 @@ public class GeminiAIService {
                "4. TIDAK BOLEH memberikan kode, script, atau solusi teknis\n" +
                "5. Jika ditanya hal diluar konteks, arahkan kembali ke kesehatan mental\n" +
                "6. Berikan respons yang empati, supportif, dan caring\n" +
-               "7. JANGAN gunakan format [MOOD_ANALYSIS] atau [MOOD_ONLY] dalam respons\n" +
-               "8. Respons harus natural dan conversational\n\n" +
+               "7. Respons harus natural dan conversational\n\n" +
                "Pesan user: \"" + userMessage + "\"";
     }
     
