@@ -131,12 +131,12 @@ public class GeminiAIService {
     public void sendMessage(String userMessage, AICallback callback) {
         // Handle inappropriate requests
         if (isInappropriateRequest(userMessage)) {
-            String redirectResponse = "Maaf, sebagai MoodMate saya fokus membantu kesehatan mental Anda 💜\\n\\n" +
-                    "Saya di sini untuk:\\n" +
-                    "✨ Mendengarkan cerita dan perasaan Anda\\n" +
-                    "💭 Membantu menganalisis mood dan emosi\\n" +
-                    "🤗 Memberikan dukungan dan motivasi\\n" +
-                    "📈 Tracking perkembangan mental wellness\\n\\n" +
+            String redirectResponse = "Maaf, sebagai MoodMate saya fokus membantu kesehatan mental Anda 💜\n\n" +
+                    "Saya di sini untuk:\n" +
+                    "✨ Mendengarkan cerita dan perasaan Anda\n" +
+                    "💭 Membantu menganalisis mood dan emosi\n" +
+                    "🤗 Memberikan dukungan dan motivasi\n" +
+                    "📈 Tracking perkembangan mental wellness\n\n" +
                     "Ceritakan bagaimana perasaan Anda hari ini? 😊";
             callback.onSuccess(redirectResponse, "Netral");
             return;
