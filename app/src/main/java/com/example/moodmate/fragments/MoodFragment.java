@@ -135,9 +135,7 @@ public class MoodFragment extends Fragment {
         android.util.Log.d("MoodFragment", "initViews - recommendation title: " + (singleRecommendationTitle != null));
         android.util.Log.d("MoodFragment", "initViews - recommendation description: " + (singleRecommendationDescription != null));
         
-        android.util.Log.d("MoodFragment", "About to call setupSingleRecommendation");
-        setupSingleRecommendation();
-        android.util.Log.d("MoodFragment", "setupSingleRecommendation completed");
+        // Don't setup recommendations initially - wait for mood data
     }
     
     private void setupCharts() {
@@ -231,6 +229,7 @@ public class MoodFragment extends Fragment {
                 loadRealLineData(moodEntries);
                 loadRealPieData(moodEntries);
                 updateCurrentMoodAndInsight(moodEntries);
+                setupSingleRecommendation(); // Setup recommendation card
                 updateSingleRecommendation(moodEntries);
             }
         } catch (Exception e) {
@@ -244,9 +243,9 @@ public class MoodFragment extends Fragment {
         moodDistribution.setVisibility(View.GONE);
         currentMoodText.setVisibility(View.GONE);
         moodInsightText.setVisibility(View.GONE);
-        // Keep recommendation card visible even in empty state
+        // Hide recommendation card when no mood data
         if (singleRecommendationCard != null) {
-            singleRecommendationCard.setVisibility(View.VISIBLE);
+            singleRecommendationCard.setVisibility(View.GONE);
         }
         
         if (emptyStateText != null) {
@@ -584,19 +583,11 @@ public class MoodFragment extends Fragment {
         android.util.Log.d("MoodFragment", "setupSingleRecommendation called");
         
         if (singleRecommendationCard != null) {
-            // Ensure card is visible
+            // Setup card visibility but don't set default content
             singleRecommendationCard.setVisibility(View.VISIBLE);
             android.util.Log.d("MoodFragment", "Card visibility set to VISIBLE");
             
-            // Set default recommendation in case update fails
-            if (singleRecommendationIcon != null && singleRecommendationTitle != null && singleRecommendationDescription != null) {
-                singleRecommendationIcon.setText("☕");
-                singleRecommendationTitle.setText("Me Time Quality");
-                singleRecommendationDescription.setText("Nikmati waktu sendiri dengan minuman hangat favorit");
-                android.util.Log.d("MoodFragment", "Default recommendation set successfully");
-            } else {
-                android.util.Log.e("MoodFragment", "Some recommendation views are null - icon: " + (singleRecommendationIcon != null) + ", title: " + (singleRecommendationTitle != null) + ", desc: " + (singleRecommendationDescription != null));
-            }
+            // Don't set default recommendation - wait for mood data based recommendations
             
             singleRecommendationCard.setOnClickListener(v -> {
                 // Handle recommendation click

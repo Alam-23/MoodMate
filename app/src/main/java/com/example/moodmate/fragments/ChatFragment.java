@@ -35,6 +35,7 @@ public class ChatFragment extends Fragment {
     private GeminiAIService aiService;
     private DatabaseHelper databaseHelper;
     private int userId;
+    private ChatMessage typingMessage;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -123,12 +124,18 @@ public class ChatFragment extends Fragment {
         
         messageInput.setText("");
         
+        // Show typing indicator
+        showTypingIndicator();
+        
         // Send to AI with enhanced mood detection
         aiService.sendMessage(message, new GeminiAIService.AICallback() {
             @Override
             public void onSuccess(String response, String moodAnalysis) {
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
+                        // Remove typing indicator
+                        hideTypingIndicator();
+                        
                         // Add AI response
                         ChatMessage aiMessage = new ChatMessage(response, false, System.currentTimeMillis());
                         chatMessages.add(aiMessage);
@@ -181,6 +188,9 @@ public class ChatFragment extends Fragment {
             public void onError(String error) {
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
+                        // Remove typing indicator
+                        hideTypingIndicator();
+                        
                         android.util.Log.e("ChatFragment", "AI Service Error: " + error);
                         
                         String userFriendlyMessage;
@@ -284,5 +294,25 @@ public class ChatFragment extends Fragment {
             }
         }
         return false;
+    }
+    
+    private void showTypingIndicator() {
+        if (typingMessage == null) {
+            typingMessage = ChatMessage.createTypingMessage();
+            chatMessages.add(typingMessage);
+            chatAdapter.notifyItemInserted(chatMessages.size() - 1);
+            scrollToBottom();
+        }
+    }
+    
+    private void hideTypingIndicator() {
+        if (typingMessage != null) {
+            int position = chatMessages.indexOf(typingMessage);
+            if (position != -1) {
+                chatMessages.remove(position);
+                chatAdapter.notifyItemRemoved(position);
+                typingMessage = null;
+            }
+        }
     }
 }

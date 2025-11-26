@@ -297,7 +297,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="• Talitha Luthfi Endriyanti - 2210511026\n• Rahman Ilyas Al Kahfi - 2210511044\n• Muhammad Nur Alam - 2210511068
-\n• Muhammad Reza Adi Pratama - 2210511080"
+\n• Muhammad Reza Adi P - 2210511080"
                     android:textColor="#B0B0B0"
                     android:textSize="14sp"
                     android:lineSpacingExtra="4dp" />
