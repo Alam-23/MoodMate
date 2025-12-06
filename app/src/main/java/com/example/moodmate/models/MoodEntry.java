@@ -5,12 +5,22 @@ public class MoodEntry {
     private float moodScore;
     private String source;
     private long timestamp;
+    private String note;
     
     public MoodEntry(String moodType, float moodScore, String source, long timestamp) {
         this.moodType = moodType;
         this.moodScore = moodScore;
         this.source = source;
         this.timestamp = timestamp;
+        this.note = "";
+    }
+    
+    public MoodEntry(String moodType, float moodScore, String source, long timestamp, String note) {
+        this.moodType = moodType;
+        this.moodScore = moodScore;
+        this.source = source;
+        this.timestamp = timestamp;
+        this.note = note != null ? note : "";
     }
     
     // Getters
@@ -45,6 +55,14 @@ public class MoodEntry {
     
     public void setTimestamp(long timestamp) {
         this.timestamp = timestamp;
+    }
+    
+    public String getNote() {
+        return note != null ? note : "";
+    }
+    
+    public void setNote(String note) {
+        this.note = note != null ? note : "";
     }
     
     public static float getMoodScore(String moodType) {

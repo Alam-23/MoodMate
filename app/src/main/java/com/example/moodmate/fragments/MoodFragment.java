@@ -7,10 +7,18 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
+import android.text.TextWatcher;
+import android.text.Editable;
 
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.moodmate.services.GeminiAIService;
 
 import com.example.moodmate.R;
 import com.example.moodmate.database.DatabaseHelper;
@@ -50,14 +58,23 @@ public class MoodFragment extends Fragment {
     private TextView singleRecommendationTitle;
     private TextView singleRecommendationDescription;
     private DatabaseHelper databaseHelper;
+    private GeminiAIService geminiAIService;
     private int userId;
+    
+    // Mood input components
+    private EditText moodDescriptionInput;
+    private Button submitMoodBtn;
+    private String detectedMood = "";
+    private float detectedMoodScore = 0.0f;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_mood, container, false);
         
         initViews(view);
+        setupMoodInput(view);
         databaseHelper = new DatabaseHelper(getContext());
+        geminiAIService = new GeminiAIService(getContext());
         
         // Get user ID from SharedPreferences
         SharedPreferences sharedPreferences = getContext().getSharedPreferences("MoodMatePrefs", Context.MODE_PRIVATE);
@@ -136,6 +153,123 @@ public class MoodFragment extends Fragment {
         android.util.Log.d("MoodFragment", "initViews - recommendation description: " + (singleRecommendationDescription != null));
         
         // Don't setup recommendations initially - wait for mood data
+    }
+    
+    private void setupMoodInput(View view) {
+        // Initialize components
+        moodDescriptionInput = view.findViewById(R.id.mood_description_input);
+        submitMoodBtn = view.findViewById(R.id.submit_mood_btn);
+        
+        // Set up text watcher for enabling submit button
+        moodDescriptionInput.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                String text = s.toString().trim();
+                
+                // Enable/disable submit button based on text input
+                if (!text.isEmpty()) {
+                    submitMoodBtn.setEnabled(true);
+                    submitMoodBtn.setAlpha(1.0f);
+                } else {
+                    submitMoodBtn.setEnabled(false);
+                    submitMoodBtn.setAlpha(0.5f);
+                }
+            }
+            
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+        
+        // Set up submit button to save mood directly
+        submitMoodBtn.setOnClickListener(v -> {
+            saveMoodEntry();
+        });
+    }
+    
+    private void saveMoodEntry() {
+        String userInput = moodDescriptionInput.getText().toString().trim();
+        
+        if (userInput.isEmpty()) {
+            Toast.makeText(getContext(), "Masukkan deskripsi mood terlebih dahulu", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        // Disable button and show loading
+        submitMoodBtn.setEnabled(false);
+        submitMoodBtn.setText("Menganalisis...");
+        
+        // Use Gemini AI to analyze mood
+        String moodAnalysisPrompt = createMoodAnalysisPrompt(userInput);
+        
+        geminiAIService.sendMessageForMoodAnalysis(moodAnalysisPrompt, new GeminiAIService.MoodAnalysisCallback() {
+            @Override
+            public void onSuccess(String mood, float score) {
+                // Save to database
+                MoodEntry moodEntry = new MoodEntry(mood, score, "manual", System.currentTimeMillis());
+                moodEntry.setNote(userInput);
+                
+                long result = databaseHelper.insertMoodEntry(moodEntry, userId);
+                
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        if (result != -1) {
+                            Toast.makeText(getContext(), "Mood berhasil dianalisis dan disimpan! 🎯", Toast.LENGTH_SHORT).show();
+                            android.util.Log.d("MoodFragment", "AI detected mood: " + mood + " with score: " + score);
+                            
+                            // Reset form
+                            resetMoodInput();
+                            
+                            // Refresh mood data
+                            loadMoodData();
+                        } else {
+                            Toast.makeText(getContext(), "Gagal menyimpan mood", Toast.LENGTH_SHORT).show();
+                            resetSubmitButton();
+                        }
+                    });
+                }
+            }
+            
+            @Override
+            public void onError(String error) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        Toast.makeText(getContext(), "Gagal menganalisis mood: " + error, Toast.LENGTH_SHORT).show();
+                        resetSubmitButton();
+                    });
+                }
+            }
+        });
+    }
+    
+    private String createMoodAnalysisPrompt(String userInput) {
+        return "Analisis mood dari text ini dan berikan hasilnya dalam format JSON sederhana:\\n\\n" +
+               "Text: \\\"" + userInput + "\\\"\\n\\n" +
+               "Berikan response dalam format:\\n" +
+               "{\\\"mood\\\": \\\"[mood_name]\\\", \\\"score\\\": [1-10]}\\n\\n" +
+               "Mood yang valid: Senang, Sedih, Marah, Cemas, Excited, Stress, Calm, Netral\\n" +
+               "Score: 1-3 (sangat negatif), 4-6 (netral), 7-10 (positif)\\n\\n" +
+               "Contoh: {\\\"mood\\\": \\\"Senang\\\", \\\"score\\\": 8.5}";
+    }
+    
+    private void resetSubmitButton() {
+        submitMoodBtn.setEnabled(true);
+        submitMoodBtn.setText("Kirim");
+        submitMoodBtn.setAlpha(1.0f);
+    }
+    
+    private void resetMoodInput() {
+        // Reset form state
+        moodDescriptionInput.setText("");
+        detectedMood = "";
+        detectedMoodScore = 0.0f;
+        
+        // Reset submit button
+        submitMoodBtn.setEnabled(false);
+        submitMoodBtn.setText("Kirim");
+        submitMoodBtn.setAlpha(0.5f);
     }
     
     private void setupCharts() {
@@ -337,7 +471,7 @@ public class MoodFragment extends Fragment {
         dataSet.setValueFormatter(new ValueFormatter() {
             @Override
             public String getPointLabel(Entry entry) {
-                return getEmojiFromScore(entry.getY());
+                return getMoodEmojiFromScore(entry.getY());
             }
         });
         
@@ -449,13 +583,19 @@ public class MoodFragment extends Fragment {
     }
     
     private void updateCurrentMoodAndInsight(List<MoodEntry> moodEntries) {
-        if (moodEntries.isEmpty()) return;
+        if (moodEntries.isEmpty()) {
+            currentMoodText.setText("😐 Netral");
+            moodInsightText.setText("Mulai input mood untuk melihat insight!");
+            return;
+        }
         
-        // Get latest mood
+        // Get latest mood (most recent entry)
         MoodEntry latestMood = moodEntries.get(moodEntries.size() - 1);
         String currentMood = latestMood.getMoodType();
         
+        // Update current mood display immediately
         currentMoodText.setText(getMoodEmoji(currentMood) + " " + currentMood);
+        android.util.Log.d("MoodFragment", "Updated current mood to: " + currentMood);
         
         // Generate insight
         String insight = generateMoodInsight(moodEntries);
@@ -478,7 +618,7 @@ public class MoodFragment extends Fragment {
                 return "😟";
             case "excited":
             case "antusias":
-                return "🎉";
+                return "😊";
             case "stress":
             case "tertekan":
                 return "😫";
@@ -496,18 +636,18 @@ public class MoodFragment extends Fragment {
         return getMoodEmoji(mood);
     }
     
-    // Get mood from score for chart display
-    private String getEmojiFromScore(float score) {
-        if (score >= 9.0f) return "🎉"; // Excited (9.0f)
-        else if (score >= 8.0f) return "😊"; // Senang (8.5f)
-        else if (score >= 6.5f) return "🙂"; // Calm (7.0f)
-        else if (score >= 4.5f) return "😐"; // Netral (5.0f)
-        else if (score >= 2.8f) return "😟"; // Cemas (3.0f)
-        else if (score >= 2.2f) return "😫"; // Stress (2.5f)
-        else if (score >= 1.8f) return "😢"; // Sedih (2.0f)
-        else return "😠"; // Marah (1.5f)
+    // Get mood emoji from score for chart display
+    private String getMoodEmojiFromScore(float score) {
+        if (score >= 9.0f) return "😊"; // Excited
+        else if (score >= 8.0f) return "😊"; // Senang  
+        else if (score >= 6.5f) return "🙂"; // Calm
+        else if (score >= 4.5f) return "😐"; // Netral
+        else if (score >= 2.8f) return "😟"; // Cemas
+        else if (score >= 2.2f) return "😫"; // Stress
+        else if (score >= 1.8f) return "😢"; // Sedih
+        else return "😠"; // Marah
     }
-    
+
     private int getMoodColor(String mood) {
         switch (mood.toLowerCase()) {
             case "senang":
@@ -573,7 +713,7 @@ public class MoodFragment extends Fragment {
         if (avgScore >= 7.0f) {
             return "✨ Mood Anda cenderung positif! Saat ini: " + moodEmoji + " " + currentMood + ". Pertahankan aktivitas yang membuat Anda bahagia! 😊";
         } else if (avgScore >= 5.0f) {
-            return "⚖️ Mood Anda dalam keadaan seimbang. Saat ini: " + moodEmoji + " " + currentMood + ". Coba aktivitas yang lebih menyenangkan! 🌟";
+            return "🌟 Saat ini: " + moodEmoji + " " + currentMood + ". Coba aktivitas yang lebih menyenangkan untuk meningkatkan mood! ✨";
         } else {
             return "💜 Sepertinya Anda perlu lebih banyak dukungan. Saat ini: " + moodEmoji + " " + currentMood + ". Jangan ragu untuk terus bercerita dengan AI! 🤗";
         }

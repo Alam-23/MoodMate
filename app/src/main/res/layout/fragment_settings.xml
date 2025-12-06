@@ -77,6 +77,18 @@
 
                 </LinearLayout>
 
+                <!-- Edit Profile Section -->
+                <Button
+                    android:id="@+id/btn_edit_profile"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:text="Edit Profile"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp"
+                    android:background="@drawable/edit_button_background"
+                    android:layout_marginBottom="8dp"
+                    android:visibility="gone" />
+
                 <Button
                     android:id="@+id/btn_logout"
                     android:layout_width="match_parent"

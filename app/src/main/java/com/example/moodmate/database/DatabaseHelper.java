@@ -17,7 +17,7 @@ import java.util.List;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "moodmate.db";
-    private static final int DATABASE_VERSION = 3; // Updated version for user-specific data
+    private static final int DATABASE_VERSION = 4; // Added note field to mood entries
     
     // Tables
     private static final String TABLE_CHAT = "chat_messages";
@@ -37,6 +37,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String MOOD_SCORE = "mood_score";
     private static final String MOOD_TIMESTAMP = "timestamp";
     private static final String MOOD_SOURCE = "source"; // chat, manual, journal
+    private static final String MOOD_NOTE = "note";
     private static final String MOOD_USER_ID = "user_id";
     
     // User table columns
@@ -68,6 +69,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 MOOD_TYPE + " TEXT NOT NULL, " +
                 MOOD_SCORE + " REAL, " +
                 MOOD_SOURCE + " TEXT, " +
+                MOOD_NOTE + " TEXT, " +
                 MOOD_TIMESTAMP + " INTEGER NOT NULL, " +
                 MOOD_USER_ID + " INTEGER NOT NULL)";
         db.execSQL(createMoodTable);
@@ -112,6 +114,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 db.execSQL("DROP TABLE IF EXISTS " + TABLE_CHAT);
                 db.execSQL("DROP TABLE IF EXISTS " + TABLE_MOOD);
                 onCreate(db);
+            }
+        }
+        
+        if (oldVersion < 4) {
+            // Add note column to mood table in version 4
+            try {
+                db.execSQL("ALTER TABLE " + TABLE_MOOD + " ADD COLUMN " + MOOD_NOTE + " TEXT DEFAULT ''");
+                android.util.Log.d("DatabaseHelper", "Note column added to mood table");
+            } catch (Exception e) {
+                android.util.Log.e("DatabaseHelper", "Error adding note column: " + e.getMessage());
             }
         }
     }
@@ -167,6 +179,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             values.put(MOOD_TYPE, mood.getMoodType());
             values.put(MOOD_SCORE, mood.getMoodScore());
             values.put(MOOD_SOURCE, mood.getSource());
+            values.put(MOOD_NOTE, mood.getNote());
             values.put(MOOD_TIMESTAMP, mood.getTimestamp());
             values.put(MOOD_USER_ID, userId);
             
@@ -204,6 +217,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         cursor.getString(cursor.getColumnIndexOrThrow(MOOD_SOURCE)),
                         cursor.getLong(cursor.getColumnIndexOrThrow(MOOD_TIMESTAMP))
                 );
+                // Set note if it exists
+                int noteIndex = cursor.getColumnIndex(MOOD_NOTE);
+                if (noteIndex != -1) {
+                    mood.setNote(cursor.getString(noteIndex));
+                }
                 moods.add(mood);
             } while (cursor.moveToNext());
         }
@@ -235,6 +253,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                             cursor.getString(cursor.getColumnIndexOrThrow(MOOD_SOURCE)),
                             cursor.getLong(cursor.getColumnIndexOrThrow(MOOD_TIMESTAMP))
                     );
+                    // Set note if it exists
+                    int noteIndex = cursor.getColumnIndex(MOOD_NOTE);
+                    if (noteIndex != -1) {
+                        mood.setNote(cursor.getString(noteIndex));
+                    }
                     moods.add(mood);
                     android.util.Log.d("DatabaseHelper", "Retrieved mood: " + mood.getMoodType());
                 } while (cursor.moveToNext());
@@ -450,6 +473,57 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         cursor.close();
         db.close();
         return profilePicture;
+    }
+    
+    // Update user name
+    public boolean updateUserName(String userEmail, String newName) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        
+        ContentValues values = new ContentValues();
+        values.put(USER_NAME, newName);
+        
+        String whereClause = USER_EMAIL + " = ?";
+        String[] whereArgs = {userEmail};
+        
+        int rowsAffected = db.update(TABLE_USER, values, whereClause, whereArgs);
+        db.close();
+        
+        android.util.Log.d("DatabaseHelper", "Updated user name for " + userEmail + ", rows affected: " + rowsAffected);
+        return rowsAffected > 0;
+    }
+    
+    // Update user password
+    public boolean updateUserPassword(String userEmail, String hashedPassword) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        
+        ContentValues values = new ContentValues();
+        values.put(USER_PASSWORD, hashedPassword);
+        
+        String whereClause = USER_EMAIL + " = ?";
+        String[] whereArgs = {userEmail};
+        
+        int rowsAffected = db.update(TABLE_USER, values, whereClause, whereArgs);
+        db.close();
+        
+        android.util.Log.d("DatabaseHelper", "Updated user password for " + userEmail + ", rows affected: " + rowsAffected);
+        return rowsAffected > 0;
+    }
+    
+    // Verify user password for password change
+    public boolean verifyUserPassword(String userEmail, String hashedPassword) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        
+        String selection = USER_EMAIL + " = ? AND " + USER_PASSWORD + " = ?";
+        String[] selectionArgs = {userEmail, hashedPassword};
+        
+        Cursor cursor = db.query(TABLE_USER, new String[]{USER_ID}, selection, selectionArgs, null, null, null);
+        boolean isValid = cursor.getCount() > 0;
+        
+        cursor.close();
+        db.close();
+        
+        android.util.Log.d("DatabaseHelper", "Password verification for " + userEmail + ": " + isValid);
+        return isValid;
     }
     
     // Force recreate database (for development/testing)

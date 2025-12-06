@@ -127,10 +127,10 @@ public class ChatFragment extends Fragment {
         // Show typing indicator
         showTypingIndicator();
         
-        // Send to AI with enhanced mood detection
-        aiService.sendMessage(message, new GeminiAIService.AICallback() {
+        // Send to AI for empathy chat only
+        aiService.sendMessage(message, new GeminiAIService.ChatCallback() {
             @Override
-            public void onSuccess(String response, String moodAnalysis) {
+            public void onSuccess(String response) {
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
                         // Remove typing indicator
@@ -144,42 +144,7 @@ public class ChatFragment extends Fragment {
                         
                         // Save AI message to database
                         databaseHelper.insertChatMessage(aiMessage, userId);
-                        
-                        // Use enhanced mood analysis (from AI response or fallback to local analysis)
-                        String analyzedMood = moodAnalysis;
-                        if (analyzedMood == null || analyzedMood.trim().isEmpty()) {
-                            // Fallback to local analysis if AI didn't provide mood
-                            analyzedMood = aiService.analyzeMood(message);
-                        }
-                        
-                        android.util.Log.d("ChatFragment", "Original message: " + message);
-                        android.util.Log.d("ChatFragment", "AI Mood Analysis: " + moodAnalysis);
-                        android.util.Log.d("ChatFragment", "Final Analyzed mood: " + analyzedMood);
-                        
-                        // Special command for testing multiple moods
-                        if (message.toLowerCase().contains("test mood data")) {
-                            createTestMoodData();
-                            return; 
-                        }
-                        
-                        if (analyzedMood != null && !analyzedMood.trim().isEmpty() && !analyzedMood.equals("Netral")) {
-                            MoodEntry moodEntry = new MoodEntry(
-                                analyzedMood,
-                                MoodEntry.getMoodScore(analyzedMood),
-                                "chat",
-                                System.currentTimeMillis()
-                            );
-                            long result = databaseHelper.insertMoodEntry(moodEntry, userId);
-                            android.util.Log.d("ChatFragment", "Mood entry saved - ID: " + result + ", Mood: " + analyzedMood);
-                            
-                            // Notify MainActivity about mood update
-                            if (getActivity() instanceof MainActivity) {
-                                ((MainActivity) getActivity()).notifyMoodUpdate();
-                                android.util.Log.d("ChatFragment", "Mood update notification sent to MainActivity");
-                            }
-                        } else {
-                            android.util.Log.d("ChatFragment", "Skipping mood entry - mood was null, empty, or Netral: " + analyzedMood);
-                        }
+
                     });
                 }
             }

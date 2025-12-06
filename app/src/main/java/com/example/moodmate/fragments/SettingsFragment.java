@@ -40,6 +40,8 @@ import androidx.fragment.app.Fragment;
 import com.example.moodmate.LoginActivity;
 import com.example.moodmate.R;
 import com.example.moodmate.database.DatabaseHelper;
+import com.example.moodmate.dialogs.EditProfileDialog;
+import com.example.moodmate.utils.ProfileManager;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -48,11 +50,12 @@ import java.io.InputStream;
 public class SettingsFragment extends Fragment {
 
     private TextView tvUserName, tvUserEmail;
-    private Button btnLogout;
+    private Button btnLogout, btnEditProfile;
     private CardView userAccountCard;
     private ImageView ivProfilePicture;
     private SharedPreferences sharedPreferences;
     private DatabaseHelper databaseHelper;
+    private ProfileManager profileManager;
 
     private ActivityResultLauncher<Intent> imagePickerLauncher;
     private ActivityResultLauncher<String> permissionLauncher;
@@ -78,11 +81,13 @@ public class SettingsFragment extends Fragment {
         tvUserName = view.findViewById(R.id.tv_user_name);
         tvUserEmail = view.findViewById(R.id.tv_user_email);
         btnLogout = view.findViewById(R.id.btn_logout);
+        btnEditProfile = view.findViewById(R.id.btn_edit_profile);
         userAccountCard = view.findViewById(R.id.user_account_card);
         ivProfilePicture = view.findViewById(R.id.iv_profile_picture);
 
         sharedPreferences = getActivity().getSharedPreferences("MoodMatePrefs", getActivity().MODE_PRIVATE);
         databaseHelper = new DatabaseHelper(getContext());
+        profileManager = new ProfileManager(getContext());
     }
 
     private void setupUserInfo() {
@@ -104,6 +109,7 @@ public class SettingsFragment extends Fragment {
                 loadProfileImage(profileImageBase64);
             }
             btnLogout.setText("Keluar");
+            btnEditProfile.setVisibility(View.VISIBLE);
             userAccountCard.setVisibility(View.VISIBLE);
 
         } else if (hasSkippedLogin) {
@@ -118,6 +124,7 @@ public class SettingsFragment extends Fragment {
             }
             
             btnLogout.setText("Masuk ke Akun");
+            btnEditProfile.setVisibility(View.GONE);
             userAccountCard.setVisibility(View.VISIBLE);
 
         } else {
@@ -128,6 +135,9 @@ public class SettingsFragment extends Fragment {
 
     private void setupClickListeners() {
         ivProfilePicture.setOnClickListener(v -> openImagePicker());
+        
+        btnEditProfile.setOnClickListener(v -> 
+            EditProfileDialog.showEditProfile(getContext(), this::setupUserInfo));
 
         btnLogout.setOnClickListener(v -> {
             boolean isLoggedIn = sharedPreferences.getBoolean("isLoggedIn", false);
